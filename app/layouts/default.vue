@@ -12,7 +12,7 @@
                         <div class="auth-section">
                             <template v-if="auth.isAuthenticated.value">
                                 <span class="user-greeting">
-                                    👤 {{ auth.user.value?.email }}
+                                    {{ auth.user.value?.name }}
                                 </span>
                                 <button @click="handleLogout" class="logout-btn">
                                     退出
@@ -95,7 +95,6 @@ const handleLogout = () => {
     gap: 1rem;
     margin-left: 1rem;
     padding-left: 1rem;
-    border-left: 1px solid #eee;
 }
 
 .user-greeting {

@@ -11,7 +11,9 @@ export const useRealtime = <T = RecordModel>(collectionName: string) => {
                 sort: '-created',
             })
             return result.items
-        }
+        }, {
+        server: false
+    }
     )
 
     watch(data, (newVal) => {

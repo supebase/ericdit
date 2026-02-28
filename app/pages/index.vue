@@ -12,7 +12,7 @@
             </template>
         </ClientOnly>
 
-        <button @click="refresh()">手动刷新</button>
+        <!-- <button @click="refresh()">手动刷新</button> -->
         <PostEditor />
     </div>
 </template>

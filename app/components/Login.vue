@@ -1,167 +1,104 @@
 <template>
-    <div v-if="show" class="modal-overlay" @click.self="close">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>登录</h3>
-                <button @click="close" class="close-btn">&times;</button>
-            </div>
+  <UModal
+    v-model:open="modalOpen"
+    :title="'登录'"
+    :description="'请输入您的账号信息'"
+    @close:prevent="handleClosePrevent">
+    <template #content>
+      <!-- 错误信息 -->
+      <div
+        v-if="auth.error.value"
+        class="px-4 pt-4">
+        <UAlert
+          :title="auth.error.value"
+          color="error"
+          variant="soft"
+          :close-button="null" />
+      </div>
 
-            <div v-if="auth.error.value" class="error-message">
-                {{ auth.error.value }}
-            </div>
+      <!-- 表单内容 -->
+      <div class="p-4 space-y-4">
+        <form
+          @submit.prevent="handleLogin"
+          class="space-y-4">
+          <UFormField
+            label="邮箱"
+            required>
+            <UInput
+              v-model="email"
+              type="email"
+              placeholder="admin@example.com"
+              class="w-full"
+              autocomplete="email"
+              size="lg" />
+          </UFormField>
 
-            <form @submit.prevent="handleLogin">
-                <div class="form-group">
-                    <label>邮箱</label>
-                    <input v-model="email" type="email" required placeholder="admin@example.com" />
-                </div>
+          <UFormField
+            label="密码"
+            required>
+            <UInput
+              v-model="password"
+              type="password"
+              placeholder="******"
+              class="w-full"
+              autocomplete="current-password"
+              size="lg" />
+          </UFormField>
 
-                <div class="form-group">
-                    <label>密码</label>
-                    <input v-model="password" type="password" required placeholder="******" />
-                </div>
-
-                <button type="submit" class="login-btn" :disabled="auth.loading.value">
-                    {{ auth.loading.value ? '登录中...' : '登录' }}
-                </button>
-            </form>
-
-            <div class="demo-hint">
-                <p>💡 演示账号：admin@example.com / 1234567890</p>
-            </div>
-        </div>
-    </div>
+          <UButton
+            type="submit"
+            color="neutral"
+            size="lg"
+            block
+            :loading="auth.loading.value"
+            :disabled="auth.loading.value">
+            {{ auth.loading.value ? "登录中..." : "登录" }}
+          </UButton>
+        </form>
+      </div>
+    </template>
+  </UModal>
 </template>
 
-<script setup>
-import { ref } from 'vue'
-
+<script setup lang="ts">
 const props = defineProps({
-    show: Boolean
-})
+  show: Boolean,
+});
 
-const emit = defineEmits(['close', 'login-success'])
+const emit = defineEmits(["close", "login-success"]);
 
-const auth = useAuth()
-const email = ref('')
-const password = ref('')
+const auth = useAuth();
+const email = ref("");
+const password = ref("");
+const modalOpen = ref(false);
+
+watch(
+  () => props.show,
+  (newVal) => {
+    modalOpen.value = newVal;
+  },
+  { immediate: true }
+);
+
+watch(modalOpen, (newVal) => {
+  if (!newVal) {
+    emit("close");
+    auth.error.value = null;
+  }
+});
 
 const handleLogin = async () => {
-    const success = await auth.login(email.value, password.value)
+  const success = await auth.login(email.value, password.value);
 
-    if (success) {
-        email.value = ''
-        password.value = ''
-        emit('login-success')
-        emit('close')
-    }
-}
+  if (success) {
+    email.value = "";
+    password.value = "";
+    emit("login-success");
+    modalOpen.value = false;
+  }
+};
 
-const close = () => {
-    emit('close')
-    auth.error.value = null
-}
+const handleClosePrevent = () => {
+  console.log("关闭被阻止");
+};
 </script>
-
-<style scoped>
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background: white;
-    border-radius: 8px;
-    padding: 24px;
-    width: 100%;
-    max-width: 400px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.modal-header h3 {
-    margin: 0;
-    font-size: 18px;
-}
-
-.close-btn {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: #999;
-}
-
-.close-btn:hover {
-    color: #333;
-}
-
-.form-group {
-    margin-bottom: 16px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 14px;
-    color: #555;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.login-btn {
-    width: 100%;
-    padding: 12px;
-    background: #007aff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 10px;
-}
-
-.login-btn:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-}
-
-.error-message {
-    background: #ffebee;
-    color: #c62828;
-    padding: 10px;
-    border-radius: 4px;
-    margin-bottom: 16px;
-    font-size: 14px;
-}
-
-.demo-hint {
-    margin-top: 20px;
-    padding: 12px;
-    background: #f8f9fa;
-    border-radius: 4px;
-    font-size: 13px;
-    color: #666;
-    text-align: center;
-}
-</style>
